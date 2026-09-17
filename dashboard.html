@@ -1,0 +1,1344 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>淘宝用户行为分析看板</title>
+  <style>
+    :root {
+      --ink: #1e2725;
+      --muted: #66716d;
+      --paper: #f1efe8;
+      --panel: #ffffff;
+      --line: #dddcd4;
+      --teal: #147d75;
+      --teal-soft: #dcefeb;
+      --coral: #d96c4b;
+      --coral-soft: #f8e5de;
+      --gold: #c89318;
+      --gold-soft: #f8eed1;
+      --blue: #3974a8;
+      --blue-soft: #e1ebf3;
+      --plum: #865d79;
+      --plum-soft: #f0e3eb;
+      --gray: #8d928f;
+      --gray-soft: #e9eae8;
+      --shadow: 0 10px 28px rgba(31, 43, 40, 0.08);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+      line-height: 1.55;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .site-header {
+      background: #20332f;
+      color: #fff;
+      border-bottom: 5px solid var(--gold);
+    }
+
+    .header-inner {
+      width: min(1420px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 22px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #b8cfc8;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 920px;
+      margin-bottom: 10px;
+      font-size: 40px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 980px;
+      margin-bottom: 20px;
+      color: #d2dfdb;
+      font-size: 16px;
+    }
+
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .period {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      color: #e8f0ed;
+      font-size: 13px;
+    }
+
+    .period span {
+      padding: 5px 9px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 999px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .action-button,
+    .nav-link {
+      display: inline-flex;
+      min-height: 38px;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 13px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .action-button {
+      background: var(--gold);
+      color: #1e2725;
+    }
+
+    .nav-link {
+      border-color: rgba(255, 255, 255, 0.28);
+      color: #fff;
+      background: transparent;
+    }
+
+    .action-button:hover,
+    .nav-link:hover {
+      filter: brightness(1.08);
+    }
+
+    .action-button:focus-visible,
+    .nav-link:focus-visible,
+    .filter-chip:focus-visible {
+      outline: 3px solid #f4c64c;
+      outline-offset: 2px;
+    }
+
+    .page-shell {
+      width: min(1420px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 26px 0 52px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      min-height: 36px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .filter-chip[aria-pressed="true"] {
+      border-color: #20332f;
+      background: #20332f;
+      color: #fff;
+    }
+
+    .report-time {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .kpi-card {
+      min-height: 148px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--teal);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 5px 16px rgba(31, 43, 40, 0.04);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .kpi-card:hover,
+    .insight-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .kpi-card.coral {
+      border-top-color: var(--coral);
+    }
+
+    .kpi-card.gold {
+      border-top-color: var(--gold);
+    }
+
+    .kpi-card.blue {
+      border-top-color: var(--blue);
+    }
+
+    .kpi-card.plum {
+      border-top-color: var(--plum);
+    }
+
+    .kpi-card.gray {
+      border-top-color: var(--gray);
+    }
+
+    .kpi-label {
+      min-height: 40px;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .kpi-value {
+      margin-bottom: 4px;
+      font-size: 30px;
+      line-height: 1.1;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .kpi-detail {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .section {
+      margin-top: 22px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 5px 16px rgba(31, 43, 40, 0.04);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .section-heading h2 {
+      margin-bottom: 3px;
+      font-size: 22px;
+      line-height: 1.3;
+    }
+
+    .section-heading p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tag {
+      display: inline-flex;
+      min-height: 28px;
+      align-items: center;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--teal-soft);
+      color: #135f59;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .tag.coral {
+      background: var(--coral-soft);
+      color: #9e452d;
+    }
+
+    .tag.gold {
+      background: var(--gold-soft);
+      color: #84600c;
+    }
+
+    .tag.blue {
+      background: var(--blue-soft);
+      color: #28577f;
+    }
+
+    .tag.plum {
+      background: var(--plum-soft);
+      color: #68425d;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.75fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .chart-frame {
+      display: flex;
+      min-height: 330px;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfbf9;
+      overflow: hidden;
+    }
+
+    .chart-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 520px;
+      object-fit: contain;
+    }
+
+    .funnel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .funnel-row {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr) 110px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .funnel-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .funnel-track {
+      height: 34px;
+      border-radius: 5px;
+      background: #eceeea;
+      overflow: hidden;
+    }
+
+    .funnel-fill {
+      display: flex;
+      height: 100%;
+      align-items: center;
+      padding-left: 12px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .funnel-fill.pv {
+      width: 100%;
+      background: var(--blue);
+    }
+
+    .funnel-fill.intent {
+      width: 50.61%;
+      background: var(--gold);
+    }
+
+    .funnel-fill.buy {
+      width: 9.23%;
+      background: var(--teal);
+    }
+
+    .funnel-value {
+      font-size: 16px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .metric-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .metric-item {
+      padding: 12px;
+      border-left: 4px solid var(--teal);
+      background: #f7f8f5;
+    }
+
+    .metric-item.coral {
+      border-left-color: var(--coral);
+    }
+
+    .metric-item.gold {
+      border-left-color: var(--gold);
+    }
+
+    .metric-item.blue {
+      border-left-color: var(--blue);
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .metric-number {
+      margin-top: 3px;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .metric-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .rfm-layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 22px;
+      align-items: center;
+    }
+
+    .donut-wrap {
+      display: grid;
+      place-items: center;
+    }
+
+    .rfm-donut {
+      position: relative;
+      width: 238px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--teal) 0 30.35%,
+        var(--gold) 30.35% 45.47%,
+        var(--blue) 45.47% 54.77%,
+        var(--coral) 54.77% 68.61%,
+        var(--gray) 68.61% 100%
+      );
+    }
+
+    .rfm-donut::after {
+      content: "";
+      position: absolute;
+      inset: 58px;
+      border-radius: 50%;
+      background: var(--panel);
+    }
+
+    .donut-center {
+      position: absolute;
+      inset: 58px;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .donut-center strong {
+      display: block;
+      font-size: 25px;
+      line-height: 1.1;
+    }
+
+    .donut-center span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .legend {
+      display: grid;
+      gap: 10px;
+    }
+
+    .legend-item {
+      display: grid;
+      grid-template-columns: 12px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding-bottom: 9px;
+      border-bottom: 1px solid #eceae4;
+    }
+
+    .legend-item:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: var(--teal);
+    }
+
+    .legend-dot.gold {
+      background: var(--gold);
+    }
+
+    .legend-dot.blue {
+      background: var(--blue);
+    }
+
+    .legend-dot.coral {
+      background: var(--coral);
+    }
+
+    .legend-dot.gray {
+      background: var(--gray);
+    }
+
+    .legend-name {
+      font-weight: 700;
+    }
+
+    .legend-number {
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .legend-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .insight-card {
+      min-height: 220px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .insight-card[hidden] {
+      display: none;
+    }
+
+    .insight-card h3 {
+      margin-bottom: 7px;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .insight-result {
+      margin-bottom: 10px;
+      color: var(--teal);
+      font-size: 23px;
+      line-height: 1.2;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .insight-result.coral {
+      color: var(--coral);
+    }
+
+    .insight-result.gold {
+      color: #9a7110;
+    }
+
+    .insight-result.blue {
+      color: var(--blue);
+    }
+
+    .insight-result.plum {
+      color: var(--plum);
+    }
+
+    .insight-copy {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .use-box {
+      margin-top: 13px;
+      padding-top: 10px;
+      border-top: 1px solid #eceae4;
+      font-size: 13px;
+    }
+
+    .use-box strong {
+      color: var(--ink);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .funnel-audit {
+      margin-top: 18px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 840px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 12px 13px;
+      border-bottom: 1px solid #e7e6e0;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      background: #eef2ef;
+      color: #34413d;
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td strong {
+      color: var(--teal);
+    }
+
+    .change-up {
+      color: var(--teal);
+      font-weight: 800;
+    }
+
+    .change-down {
+      color: var(--coral);
+      font-weight: 800;
+    }
+
+    .document-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .document-link {
+      display: inline-flex;
+      min-height: 38px;
+      align-items: center;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .document-link:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 24px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 10;
+      min-width: 200px;
+      padding: 11px 14px;
+      border-radius: 6px;
+      background: #20332f;
+      color: #fff;
+      font-size: 13px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1180px) {
+      .kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .two-column,
+      .rfm-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .insight-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .header-inner,
+      .page-shell {
+        width: min(100% - 24px, 1420px);
+      }
+
+      .header-inner {
+        padding-top: 22px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+      }
+
+      .header-actions {
+        width: 100%;
+      }
+
+      .action-button,
+      .nav-link {
+        flex: 1 1 145px;
+      }
+
+      .page-shell {
+        padding-top: 18px;
+      }
+
+      .section {
+        padding: 16px;
+      }
+
+      .kpi-grid,
+      .insight-grid,
+      .metric-list {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi-card {
+        min-height: 130px;
+      }
+
+      .funnel-row {
+        grid-template-columns: 75px minmax(0, 1fr) 80px;
+        gap: 8px;
+      }
+
+      .funnel-fill {
+        padding-left: 8px;
+        font-size: 11px;
+      }
+
+      .chart-frame {
+        min-height: 240px;
+        padding: 5px;
+      }
+
+      .rfm-donut {
+        width: 210px;
+      }
+
+      .rfm-donut::after,
+      .donut-center {
+        inset: 52px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <p class="eyebrow">项目一 / 淘宝用户行为分析与用户分层</p>
+      <h1>用户行为分析与分层看板</h1>
+      <p class="subtitle">统一分析窗口和业务口径后的项目结论。看板中的每个数字均来自重新执行的 Notebook。</p>
+      <div class="header-bar">
+        <div class="period">
+          <span>分析区间：2017-11-25 至 2017-12-03</span>
+          <span>有效记录：1,048,065</span>
+          <span>用户：10,202</span>
+        </div>
+        <div class="header-actions">
+          <button class="action-button" id="copySummary" type="button">复制结论摘要</button>
+          <a class="nav-link" href="#decisions">结论与用途</a>
+          <a class="nav-link" href="#changes">口径变更</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="toolbar" aria-label="结论筛选">
+      <div class="filter-group">
+        <button class="filter-chip" type="button" data-filter="all" aria-pressed="true">全部</button>
+        <button class="filter-chip" type="button" data-filter="funnel" aria-pressed="false">流量转化</button>
+        <button class="filter-chip" type="button" data-filter="growth" aria-pressed="false">活跃与复购</button>
+        <button class="filter-chip" type="button" data-filter="product" aria-pressed="false">商品运营</button>
+        <button class="filter-chip" type="button" data-filter="rfm" aria-pressed="false">用户分层</button>
+      </div>
+      <div class="report-time">数据同步：2026-09-17</div>
+    </section>
+
+    <section class="kpi-grid" aria-label="核心指标">
+      <article class="kpi-card">
+        <div class="kpi-label">全量用户</div>
+        <div class="kpi-value">10,202</div>
+        <div class="kpi-detail">其中浏览用户 10,169 人</div>
+      </article>
+      <article class="kpi-card coral">
+        <div class="kpi-label">同商品浏览到支付转化率</div>
+        <div class="kpi-value">9.23%</div>
+        <div class="kpi-detail">939 / 10,169，严格同商品链路</div>
+      </article>
+      <article class="kpi-card gold">
+        <div class="kpi-label">DAU 峰值</div>
+        <div class="kpi-value">10,019</div>
+        <div class="kpi-detail">出现在 2017-12-02</div>
+      </article>
+      <article class="kpi-card blue">
+        <div class="kpi-label">新用户 7 日复购率</div>
+        <div class="kpi-value">54.37%</div>
+        <div class="kpi-detail">3,806 / 7,000，不含首购当天</div>
+      </article>
+      <article class="kpi-card plum">
+        <div class="kpi-label">RFM 高价值用户</div>
+        <div class="kpi-value">3,096</div>
+        <div class="kpi-detail">占全部用户 30.35%</div>
+      </article>
+      <article class="kpi-card gray">
+        <div class="kpi-label">未购买用户</div>
+        <div class="kpi-value">3,202</div>
+        <div class="kpi-detail">不参与 RFM 评分，单独运营</div>
+      </article>
+    </section>
+
+    <section class="section" id="funnel">
+      <div class="section-heading">
+        <div>
+          <h2>同商品浏览转化漏斗</h2>
+          <p>按用户和商品对齐，要求浏览、收藏或加购、支付发生在同一商品上，且时间顺序一致。</p>
+        </div>
+        <span class="tag">流量转化</span>
+      </div>
+      <div class="two-column">
+        <div>
+          <div class="funnel" aria-label="同商品浏览转化漏斗数据">
+            <div class="funnel-row">
+              <div class="funnel-label">浏览</div>
+              <div class="funnel-track">
+                <div class="funnel-fill pv">页面访问</div>
+              </div>
+              <div class="funnel-value">10,169</div>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-label">收藏或加购</div>
+              <div class="funnel-track">
+                <div class="funnel-fill intent">50.61%</div>
+              </div>
+              <div class="funnel-value">5,147</div>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-label">支付</div>
+              <div class="funnel-track">
+                <div class="funnel-fill buy">支付</div>
+              </div>
+              <div class="funnel-value">939</div>
+            </div>
+          </div>
+          <div class="metric-list">
+            <div class="metric-item gold">
+              <div class="metric-label">同商品浏览到意向转化率</div>
+              <div class="metric-number">50.61%</div>
+              <div class="metric-note">从商品浏览进入同一商品收藏或加购阶段</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-label">同商品浏览到支付转化率</div>
+              <div class="metric-number">9.23%</div>
+              <div class="metric-note">同一商品完成浏览、意向、支付完整链路</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-frame">
+          <img src="images/traffic_funnel_analysis.png" alt="同商品浏览、收藏或加购、支付转化漏斗图" loading="lazy">
+        </div>
+      </div>
+      <div class="table-wrap funnel-audit">
+        <table>
+          <thead>
+            <tr>
+              <th>购买用户口径</th>
+              <th>用户数</th>
+              <th>构成与说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>全量购买用户</td>
+              <td><strong>7,000</strong></td>
+              <td>分析窗口内只要存在 <code>buy</code> 行为即计入，不要求浏览。</td>
+            </tr>
+            <tr>
+              <td>用户级顺序漏斗购买</td>
+              <td><strong>6,882</strong></td>
+              <td>用户首次浏览后存在任意购买行为，不要求浏览和购买为同一商品。</td>
+            </tr>
+            <tr>
+              <td>两种口径差额</td>
+              <td><strong>118</strong></td>
+              <td><strong>27 人</strong>无浏览记录，对应 162 条支付；<strong>91 人</strong>先买后看，对应 99 条支付。</td>
+            </tr>
+            <tr>
+              <td>严格同商品漏斗购买</td>
+              <td><strong>939</strong></td>
+              <td>同一商品完成浏览、收藏或加购、支付链路，作为当前最终口径。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="dau">
+      <div class="section-heading">
+        <div>
+          <h2>DAU 与活跃峰值</h2>
+          <p>2017-12-02 活跃用户达到 10,019 人，为分析窗口峰值。</p>
+        </div>
+        <span class="tag gold">活跃监测</span>
+      </div>
+      <div class="chart-frame">
+        <img src="images/DAU regional_monitoring.png" alt="每日活跃用户趋势图" loading="lazy">
+      </div>
+    </section>
+
+    <section class="section" id="product">
+      <div class="section-heading">
+        <div>
+          <h2>商品与品类表现</h2>
+          <p>分别按支付次数和浏览次数识别核心品类与单品。</p>
+        </div>
+        <span class="tag blue">商品运营</span>
+      </div>
+      <div class="metric-list">
+        <div class="metric-item">
+          <div class="metric-label">热销类目 Top 1</div>
+          <div class="metric-number">2735466</div>
+          <div class="metric-note">支付 385 次</div>
+        </div>
+        <div class="metric-item blue">
+          <div class="metric-label">热门单品 Top 1</div>
+          <div class="metric-number">812879</div>
+          <div class="metric-note">浏览 298 次</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="retention">
+      <div class="section-heading">
+        <div>
+          <h2>新用户 7 日复购</h2>
+          <p>首购后第 1 至 7 天内再次购买的用户占比，首购当天多笔交易不计为跨日复购。</p>
+        </div>
+        <span class="tag coral">复购洞察</span>
+      </div>
+      <div class="metric-list">
+        <div class="metric-item blue">
+          <div class="metric-label">购买用户</div>
+          <div class="metric-number">7,000</div>
+          <div class="metric-note">作为 7 日复购率分母</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">7 日内再次购买</div>
+          <div class="metric-number">3,806</div>
+          <div class="metric-note">在首购后第 1 至 7 天发生购买</div>
+        </div>
+        <div class="metric-item gold">
+          <div class="metric-label">最新复购率</div>
+          <div class="metric-number">54.37%</div>
+          <div class="metric-note">原口径为 65.47%</div>
+        </div>
+        <div class="metric-item coral">
+          <div class="metric-label">未在首购后 1 至 7 天内跨日复购的购买用户</div>
+          <div class="metric-number">3,194</div>
+          <div class="metric-note">相对 7,000 名购买用户的未复购人群</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="rfm">
+      <div class="section-heading">
+        <div>
+          <h2>RFM 用户分层</h2>
+          <p>R 使用最近一次购买，F 使用购买次数并按平均秩五等分。未购买用户单独列为运营对象。</p>
+        </div>
+        <span class="tag plum">用户分层</span>
+      </div>
+      <div class="rfm-layout">
+        <div class="donut-wrap">
+          <div class="rfm-donut" role="img" aria-label="RFM 用户分层占比图">
+            <div class="donut-center">
+              <div>
+                <strong>7,000</strong>
+                <span>购买用户</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-dot"></span>
+            <div>
+              <div class="legend-name">高价值用户</div>
+              <div class="legend-note">最近购买且购买频率较高，占购买用户 44.23%</div>
+            </div>
+            <div class="legend-number">3,096</div>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot gold"></span>
+            <div>
+              <div class="legend-name">重点挽留用户</div>
+              <div class="legend-note">购买频率较高，但近期沉默</div>
+            </div>
+            <div class="legend-number">1,543</div>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot blue"></span>
+            <div>
+              <div class="legend-name">潜力 / 新用户</div>
+              <div class="legend-note">近期有购买，购买频次仍较低</div>
+            </div>
+            <div class="legend-number">949</div>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot coral"></span>
+            <div>
+              <div class="legend-name">流失用户</div>
+              <div class="legend-note">近期沉默且购买频率较低</div>
+            </div>
+            <div class="legend-number">1,412</div>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot gray"></span>
+            <div>
+              <div class="legend-name">未购买用户</div>
+              <div class="legend-note">窗口中只有浏览、收藏或加购行为</div>
+            </div>
+            <div class="legend-number">3,202</div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-frame" style="margin-top: 18px;">
+        <img src="images/rfm_segment_distribution.png" alt="RFM 用户分层分布图" loading="lazy">
+      </div>
+    </section>
+
+    <section class="section" id="decisions">
+      <div class="section-heading">
+        <div>
+          <h2>结论与业务用途</h2>
+          <p>把分析结论直接映射到运营、商品和用户管理动作。</p>
+        </div>
+        <span class="tag">决策摘要</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>结论</th>
+              <th>最新结果</th>
+              <th>主要用途</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>分析数据范围</td>
+              <td><strong>1,048,065 行 / 10,202 用户</strong></td>
+              <td>用于统一所有报表口径，避免范围外记录干扰转化、复购和 RFM 结果。</td>
+            </tr>
+            <tr>
+              <td>同商品浏览到支付转化</td>
+              <td><strong>9.23%</strong>，939 名支付用户</td>
+              <td>用于定位首页、商品详情、收藏加购和结算链路中的流失环节，支持页面与活动优化。</td>
+            </tr>
+            <tr>
+              <td>购买用户口径差异</td>
+              <td><strong>118 人</strong>，27 人无浏览 + 91 人先买后看</td>
+              <td>用于核对行为日志完整性、识别异常顺序，并明确全量购买、用户级漏斗和严格同商品漏斗的适用范围。</td>
+            </tr>
+            <tr>
+              <td>DAU 峰值</td>
+              <td><strong>10,019 人</strong>，12 月 2 日</td>
+              <td>用于活动排期、服务器容量准备、内容推送时段选择和运营资源投放。</td>
+            </tr>
+            <tr>
+              <td>热销类目</td>
+              <td><strong>类目 2735466</strong>，支付 385 次</td>
+              <td>用于类目招商、库存倾斜、频道坑位和主题活动选品。</td>
+            </tr>
+            <tr>
+              <td>热门单品</td>
+              <td><strong>商品 812879</strong>，浏览 298 次</td>
+              <td>用于商品详情优化、推荐流量分配、关联销售和爆品承接能力检查。</td>
+            </tr>
+            <tr>
+              <td>新用户 7 日复购</td>
+              <td><strong>54.37%</strong>，3,806 人</td>
+              <td>用于评价首购后承接效果，设计 1 至 7 天内的短信、优惠券、会员任务和品类复购提醒。</td>
+            </tr>
+            <tr>
+              <td>高价值用户</td>
+              <td><strong>3,096 人</strong>，占购买用户 44.23%</td>
+              <td>用于会员权益、专属客服、新品优先购和高客单商品推荐，优先保障留存。</td>
+            </tr>
+            <tr>
+              <td>未购买用户</td>
+              <td><strong>3,202 人</strong></td>
+              <td>用于首购转化运营，针对浏览和加购未支付人群进行召回、满减激励和决策内容补充。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="changes">
+      <div class="section-heading">
+        <div>
+          <h2>口径变更影响</h2>
+          <p>展示修改前后的核心变化，便于后续复盘和报告说明。</p>
+        </div>
+        <span class="tag coral">版本对照</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>指标</th>
+              <th>修改前</th>
+              <th>修改后</th>
+              <th>变化原因</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>数据行数</td>
+              <td>1,048,576</td>
+              <td class="change-up">1,048,065</td>
+              <td>过滤分析窗口外记录</td>
+            </tr>
+            <tr>
+              <td>同商品浏览到支付转化率</td>
+              <td>68.84%</td>
+              <td class="change-down">9.23%</td>
+              <td>改为同一商品、同一用户并保持浏览到意向到支付的时间顺序</td>
+            </tr>
+            <tr>
+              <td>新用户 7 日复购率</td>
+              <td>65.47%</td>
+              <td class="change-down">54.37%</td>
+              <td>只统计首购后第 1 至 7 天内的跨日复购</td>
+            </tr>
+            <tr>
+              <td>RFM 评分用户</td>
+              <td>10,200</td>
+              <td class="change-up">7,000</td>
+              <td>只对购买用户计算 R/F</td>
+            </tr>
+            <tr>
+              <td>F 分箱并列值</td>
+              <td><code>method='first'</code></td>
+              <td class="change-up"><code>method='average'</code></td>
+              <td>相同购买频次使用相同排名，避免结果受用户行顺序影响</td>
+            </tr>
+            <tr>
+              <td>高价值用户</td>
+              <td>6,066</td>
+              <td class="change-up">3,096</td>
+              <td>R/F 从全部行为改为购买行为</td>
+            </tr>
+            <tr>
+              <td>未购买用户</td>
+              <td>未单独统计</td>
+              <td class="change-up">3,202</td>
+              <td>从 RFM 评分中拆出，形成独立运营人群</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="artifacts">
+      <div class="section-heading">
+        <div>
+          <h2>项目文件</h2>
+          <p>查看完整口径、分析流程和原始代码。</p>
+        </div>
+        <span class="tag">交付物</span>
+      </div>
+      <div class="document-links">
+        <a class="document-link" href="readme.md">项目说明</a>
+        <a class="document-link" href="分析逻辑修改说明.md">分析逻辑修改说明</a>
+        <a class="document-link" href="notebooks/01数据清洗与预处理.ipynb">01 数据清洗</a>
+        <a class="document-link" href="notebooks/02DAU趋势分析.ipynb">02 DAU 分析</a>
+        <a class="document-link" href="notebooks/03流量漏斗与商品分析.ipynb">03 流量漏斗</a>
+        <a class="document-link" href="notebooks/04复购率分析.ipynb">04 复购率</a>
+        <a class="document-link" href="notebooks/05RFM用户分层.ipynb">05 RFM 分层</a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>数据窗口：2017-11-25 至 2017-12-03</span>
+      <span>看板版本：2026-09-17</span>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">结论摘要已复制</div>
+
+  <script>
+    const filterButtons = document.querySelectorAll(".filter-chip");
+    const filterTargets = {
+      funnel: ["#funnel"],
+      growth: ["#dau", "#retention"],
+      product: ["#product"],
+      rfm: ["#rfm"]
+    };
+
+    function setFilter(filter) {
+      filterButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.filter === filter));
+      });
+
+      document.querySelectorAll("main > .section").forEach((section) => {
+        if (filter === "all") {
+          section.hidden = false;
+          return;
+        }
+        const visibleSelectors = filterTargets[filter] || [];
+        section.hidden = !visibleSelectors.includes(`#${section.id}`);
+      });
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => setFilter(button.dataset.filter));
+    });
+
+    const summary = [
+      "淘宝用户行为分析结论摘要",
+      "分析区间：2017-11-25 至 2017-12-03",
+      "有效记录：1,048,065 行；用户：10,202 人",
+      "同商品浏览到支付转化率：9.23%（10,169 -> 5,147 -> 939）",
+      "购买用户口径差异：118 = 27 人无浏览 + 91 人先买后看；用户级漏斗购买 6,882，严格同商品漏斗购买 939",
+      "DAU 峰值：10,019 人（2017-12-02）",
+      "热销类目 Top 1：2735466（支付 385 次）",
+      "热门单品 Top 1：812879（浏览 298 次）",
+      "新用户 7 日复购率：54.37%（3,806 / 7,000，不含首购当天）",
+      "RFM：高价值 3,096；重点挽留 1,543；潜力 949；流失 1,412；未购买 3,202"
+    ].join("\n");
+
+    const toast = document.getElementById("toast");
+
+    document.getElementById("copySummary").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(summary);
+        toast.textContent = "结论摘要已复制";
+      } catch (error) {
+        const textarea = document.createElement("textarea");
+        textarea.value = summary;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+        toast.textContent = "结论摘要已复制";
+      }
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 1600);
+    });
+  </script>
+</body>
+</html>
